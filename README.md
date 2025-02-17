@@ -50,12 +50,12 @@ SmartNX Control è un'interfaccia web moderna per interagire con i sistemi di al
 
 4.  **Configure the connection:**
 
-    *   Modifica l'indirizzo IP e la porta nel file `api.py` o tramite l'interfaccia web.
+    *   Modifica l'indirizzo IP e la porta nel file `main.py` o tramite l'interfaccia web.
 
 5.  **Run the application:**
 
     ```bash
-    python api.py
+    python main.py
     ```
 
 6.  **Access the web interface:**
