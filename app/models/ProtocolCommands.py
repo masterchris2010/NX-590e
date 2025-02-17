@@ -1,11 +1,8 @@
 import logging
-import time
 from datetime import datetime
 from collections import defaultdict
-from ProtocolRX import ProtocolRX
-from ProtocolTX import ProtocolTX
-
-# logger = logging.getLogger(__name__)
+from app.models.ProtocolRX import ProtocolRX
+from app.models.ProtocolTX import ProtocolTX
 
 class ProtocolCommands:
     def __init__(self, ProtocolCommandsEventsListener, Model, SettingPath):
@@ -25,7 +22,6 @@ class ProtocolCommands:
         self.CMD_3D_PrimaryKeyPadFunctionWithoutPIN = chr(61)
         self.CMD_3F_ZoneByPassToggle = chr(63)
         self.LastPacketSent = ""
-        self.LogEventDescription = LogEventDescription()
         self.LogEventFirstRequest = False
         self.RX = ProtocolRX(self)
         self.TX = ProtocolTX()
@@ -40,11 +36,6 @@ class ProtocolCommands:
         self.arrCommandsAnswer = []
         self.arrCommandsPolling = []
 
-    class E_PrimaryKeypadFunctionMode:
-        TurnOffSounder = 0
-        Disarm = 1
-        ArmInAwayMode = 2
-        ArmInStayMode = 3
 
     def ResetBuffer(self):
         self.RX.ResetBuffer()
@@ -92,21 +83,12 @@ class ProtocolCommands:
         return self.TX.Output(self.CMD_3B_SetClock, f"{chr(cDateTime.year % 100)}{chr(cDateTime.month)}{chr(cDateTime.day)}{chr(cDateTime.hour)}{chr(cDateTime.minute)}{chr(cDateTime.weekday() + 1)}")
 
     def Send_CMD_3D_PrimaryKeyPadFunctionWithoutPIN(self, PartitionNumber, Mode, UserNumber):
-        if 1 <= PartitionNumber <= 8 and self._Areas.GetArea(PartitionNumber).IsValid():
-            Data = f"{chr(Mode)}{chr(2 ** (PartitionNumber - 1))}{chr(UserNumber)}"
-            return self.TX.Output(self.CMD_3D_PrimaryKeyPadFunctionWithoutPIN, Data)
-        return ""
+        Data = f"{chr(int(Mode))}{chr(2 ** (PartitionNumber - 1))}{chr(UserNumber)}"
+        return self.TX.Output(self.CMD_3D_PrimaryKeyPadFunctionWithoutPIN, Data)
 
     def Send_CMD_3F_ZoneByPassToggle(self, ZoneNumber):
         return self.TX.Output(self.CMD_3F_ZoneByPassToggle, chr(ZoneNumber - 1))
 
-    def Send_CMD_42_ZoneBypass(self, ZoneNumber):
-        """Send command to bypass a zone"""
-        return self.TX.Output(self.CMD_42_ZoneBypass, chr(ZoneNumber))
-
-    def Send_CMD_43_ZoneBypassRestore(self, ZoneNumber):
-        """Send command to restore (unbypass) a zone"""
-        return self.TX.Output(self.CMD_43_ZoneBypassRestore, chr(ZoneNumber))
 
     def ReceiveBuffer(self, Buffer):
         self.RX.ReceiveBuffer(Buffer)
@@ -165,57 +147,7 @@ class ProtocolCommands:
         for i, char in enumerate(Data):
             self._Areas.SetState(i + 1, char)
 
-    def RX_PacketReceived_0A_LogEventMessage(self, Data):
-        try:
-            EventNumber = ord(Data[0])
-            self._MaxEventNumber = ord(Data[1])
-            EventType = ord(Data[2]) & 127
-            
-            # logging.debug(f"Received event - Number: {EventNumber}, Type: {EventType}, MaxNumber: {self._MaxEventNumber}")
-            
-            if self.LogEventFirstRequest:
-                self.LogEventFirstRequest = False
-                # logging.debug("First event request - skipping")
-                return
 
-            EventDateTime = datetime(
-                year=datetime.now().year,
-                month=ord(Data[5]),
-                day=ord(Data[6]),
-                hour=ord(Data[7]),
-                minute=ord(Data[8])
-            )
-            # logging.debug(f"Event DateTime: {EventDateTime}")
-
-            EventExist = (EventNumber in self._dicEvents and 
-                        self._dicEvents[EventNumber] == EventDateTime)
-            if EventExist:
-                # logging.debug(f"Duplicate event {EventNumber} - skipping")
-                return
-
-            if not (69 <= EventType <= 117):
-                EventB05 = ord(Data[3])
-                EventB06 = ord(Data[4])
-                EventDescription = self.LogEventDescription.GetLogEventDescription(EventType)
-                # logging.debug(f"Raw event data - B05: {EventB05}, B06: {EventB06}")
-
-                if (0 <= EventType <= 16) or (62 <= EventType <= 67):
-                    ZoneNumber = EventB05 + 1
-                    Zone = self._Zones.get_zone(ZoneNumber)
-                    # logging.debug(f"Zone event - Number: {ZoneNumber}, Zone object exists: {Zone is not None}")
-                    
-                # Rest of the code remains unchanged...
-                
-                # logging.debug(f"Final event description: {EventDescription}")
-                # logging.debug(f"Storing event {EventNumber} with DateTime {EventDateTime}")
-                
-                self._dicEvents[EventNumber] = EventDateTime
-                # self.ProtocolCommandsEventsListener.on_new_event(
-                #     EventNumber, EventDateTime, EventDescription)
-                # logging.debug(f"Event {EventNumber} - {EventDateTime} - {EventDescription}")
-            
-        except Exception as e:
-            logging.error(f"Error processing event: {str(e)}", exc_info=True)
 
     def Init(self):
         self.ResetBuffer()
@@ -223,7 +155,6 @@ class ProtocolCommands:
         self.arrCommandsAnswer.clear()
         self.arrCommandsPolling.clear()
         self.AddCommand(self.Send_CMD_21_InterfaceConfigurationRequest())
-        self.LogEventFirstRequest = True
         self.AddCommand(self.Send_CMD_2A_LogEventRequest(1))
         if not self._Zones.ConfigOK():
             self.AddCommandForSetupZones()
@@ -238,6 +169,13 @@ class ProtocolCommands:
     def AddCommandForSetupZones(self):
         for i in range(1, self._Zones.MaxZones() + 1):
             self.AddCommand(self.Send_CMD_23_ZonaNameRequest(i))
+
+    def AddCommandForEventsLog(self):
+        # Crea il comando di richiesta log eventi e lo aggiunge alla coda
+        command = self.TX.Output(self.CMD_2A_LogEventRequest, "")
+        self.arrCommands.append(command)
+        # ... eventualmente gestire logica aggiuntiva o eventi ...
+        # ...existing code...
 
     def AddCommand_Polling(self):
         ZonaBlockEnd = 1
@@ -278,6 +216,9 @@ class ProtocolCommands:
 
     def OnStateChange(self, Area):
         self.ProtocolCommandsEventsListener.OnAreaChange(Area)
+
+    def WriteToLog(self, Data):
+        logging.debug(f"Protocol Commands - {Data}")
 
 class LogEventDescription:
     def LoadLogEventDescriptionItalian(self):
