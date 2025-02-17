@@ -30,8 +30,8 @@ SmartNX Control è un'interfaccia web moderna per interagire con i sistemi di al
 1.  **Clone the repository:**
 
     ```bash
-    git clone [repository_url]
-    cd [repository_directory]
+    git clone https://github.com/masterchris2010/NX-590e.git
+    cd NX-590e
     ```
 
 2.  **Create a virtual environment (recommended):**
