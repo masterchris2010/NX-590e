@@ -100,12 +100,31 @@ class TCPClient:
         self.CloseAndDestroy()
 
     def indexOf(self, data, pattern, dataLength):
-        # Rimuovere questo metodo non utilizzato
-        pass
+        failure = self.computeFailure(pattern)
+        j = 0
+        i = 0
+        while i < dataLength:
+            while j > 0 and pattern[j] != data[i]:
+                j = failure[j - 1]
+            if pattern[j] == data[i]:
+                j += 1
+            if j == len(pattern):
+                return (i - len(pattern)) + 1
+            i += 1
+        return -1
 
-    def computeFailure(self, pattern): 
-        # Rimuovere questo metodo non utilizzato
-        pass
+    def computeFailure(self, pattern):
+        failure = [0] * len(pattern)
+        j = 0
+        i = 1
+        while i < len(pattern):
+            while j > 0 and pattern[j] != pattern[i]:
+                j = failure[j - 1]
+            if pattern[j] == pattern[i]:
+                j += 1
+            failure[i] = j
+            i += 1
+        return failure
 
     def is_socket_connected(self):
         try:
