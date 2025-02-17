@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="it" class="light-theme">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <title>Interlogix Modern</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+        --primary-color: #1DB954;
+        --secondary-color: #1ED760;
+        --button-color: #df7e00;
+        --button-color-2: #ff9100;
+        --text-color: #FFFFFF;
+        --background-color: #121212;
+        --card-background: #1E1E1E;
+        --shadow: 0 4px 8px rgba(0,0,0,0.2);
+        --gradient-armed: linear-gradient(135deg, #E0245E, #FF6B6B);
+        --gradient-disarmed: linear-gradient(135deg, #1DB954, #34E07B);
+        --gradient-alarm: linear-gradient(135deg, #FF4B2B, #FF416C);
+        --gradient-normal: linear-gradient(135deg, #00B4DB, #0083B0);
+        --tab-text-color: #FFFFFF;
+        --tab-text-color-active: #FFFFFF;
+    }
+
+    :root.light-theme {
+        /* Light theme */
+        --primary-color: #1DB954;
+        --secondary-color: #1ED760;
+        --text-color: #333333;
+        --background-color: #F5F5F5;
+        --card-background: #FFFFFF;
+        --shadow: 0 2px 6px rgba(0,0,0,0.1);
+        --tab-text-color: #333333;
+        --tab-text-color-active: #FFFFFF;
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
+    h1 {
+        color: var(--primary-color);
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+    }
+
+    h2 {
+        color: var(--secondary-color);
+        margin-bottom: 20px;
+        font-size: 1.5em;
+    }
+
+    div {
+        background: var(--card-background);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    /* Add shadow only to main container */
+    .app-container {
+        box-shadow: var(--shadow);
+    }
+
+    /* Update card styles to keep effects only on interactive elements */
+    .area-card:hover, 
+    .zone-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .event-item:hover {
+        transform: translateX(5px);
+    }
+
+    /* Keep hover effects on buttons */
+    .global-button:hover {
+        transform: translateY(-2px);
+    }
+
+    label {
+        display: block;
+        margin: 10px 0 5px;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #333;
+        border-radius: 6px;
+        box-sizing: border-box;
+        background-color: var(--card-background);
+        color: var(--text-color);
+        transition: border-color 0.3s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.3);
+    }
+
+    button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-weight: 500;
+        margin-right: 10px;
+    }
+
+    button:hover {
+        background-color: var(--secondary-color);
+    }
+
+    #statusResult {
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 6px;
+        background-color: rgba(29, 185, 84, 0.1);
+    }
+
+    @media (min-width: 568px) {
+        body {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    }
+
+    /* Update area styles to match zone style */
+    .area-card, .zone-card {
+        background: var(--card-background);
+        padding: 15px;
+        border-radius: 15px;
+        margin: 8px;
+        text-align: center;
+        transition: all 0.3s ease;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .area-card::before, .zone-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-normal);
+        transition: all 0.3s ease;
+    }
+
+    .area-card.armed::before {
+        background: var(--gradient-armed);
+    }
+
+    .area-card.disarmed::before {
+        background: var(--gradient-disarmed);
+    }
+
+    .zone-card.alarm::before {
+        background: var(--gradient-alarm);
+    }
+
+    .zone-card.normal::before {
+        background: var(--gradient-normal);
+    }
+
+    .status-icon {
+        font-size: 1.8em;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+    }
+
+    .armed .status-icon {
+        color: #E0245E;
+    }
+
+    .alarm .status-icon {
+        color: #E0245E;
+        animation: pulse 1.5s infinite;
+    }
+
+    .area-number, .zone-number {
+        font-size: 1em;
+        font-weight: bold;
+        margin-bottom: 8px;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .area-status, .zone-status {
+        font-size: 0.9em;
+        color: #888;
+    }
+
+    .area-status {
+        font-size: 0.9em;
+        transition: color 0.3s ease;
+    }
+
+    .armed .area-status {
+        color: #E0245E;
+        font-weight: 600;
+    }
+
+    .disarmed .area-status {
+        color: #1DB954;
+        font-weight: 600;
+    }
+
+    #areas-container, #zones-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        padding: 10px;
+        
+    }
+
+    @media (max-width: 768px) {
+        #areas-container, #zones-container {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+
+        .area-card, .zone-card {
+            padding: 8px;
+            min-height: 70px;
+        }
+
+        .area-number, .zone-number {
+            font-size: 0.9em;
+        }
+
+        .area-status, .zone-status {
+            font-size: 0.8em;
+        }
+    }
+
+    /* Remove old area button styles */
+    .area-button,
+    .areas-grid {
+        display: none;
+    }
+
+    /* Add new styles for zones */
+    .zone-card.normal {
+        border: 2px solid #1DB954;
+    }
+
+    .zone-card.alarm {
+        border: 2px solid #E0245E;
+        animation: pulse 1.5s infinite;
+    }
+
+    .zone-number {
+        font-size: 1.1em;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .zone-status {
+        font-size: 0.9em;
+        color: #888;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    /* Add tab styles */
+    .tab-container {
+        display: flex;
+        margin-bottom: 20px;
+    }
+
+    .tab-button {
+        background: var(--card-background);
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.1em;
+        color: var(--tab-text-color);
+        transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+        background: var(--button-color-2);
+        position: relative;
+        color: var(--tab-text-color-active);
+    }
+
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 10px 10px 0;
+        border-style: solid;
+        border-color: var(--button-color) transparent transparent;
+    }
+
+    .tab-content {
+        display: none;
+        
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .global-controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .global-button {
+        padding: 12px 24px;
+        font-size: 1.1em;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .global-button.arm-all {
+        background: var(--gradient-armed);
+    }
+
+    .global-button.disarm-all {
+        background: var(--gradient-disarmed);
+    }
+
+    .global-button.download-events {
+        background: var(--gradient-normal);
+    }
+
+    .global-button:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Rimuovi o commenta questo CSS */
+    /*
+    #theme-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--card-background);
+        border: 2px solid var(--primary-color);
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+
+    #theme-button:hover {
+        transform: scale(1.1);
+        background: var(--primary-color);
+        color: white;
+    }
+    */
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 15px 30px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        display: none;
+        z-index: 1000;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    .notification.success {
+        background-color: var(--primary-color);
+    }
+
+    .notification.error {
+        background-color: #E0245E;
+    }
+
+    .notification.info {
+        background-color: var(--secondary-color);
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+            margin: 0;
+            max-width: 100%;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin: 15px 0;
+        }
+
+        h2 {
+            font-size: 1.3em;
+            margin: 10px 0;
+        }
+
+        .global-controls {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .global-button {
+            width: 100%;
+            justify-content: center;
+            margin: 0;
+        }
+
+        #theme-button {
+            top: 10px;
+            right: 10px;
+            width: 35px;
+            height: 35px;
+        }
+
+        .notification {
+            width: 90%;
+            padding: 12px;
+            font-size: 0.9em;
+        }
+
+        input, button {
+            font-size: 16px; /* Prevents iOS zoom on focus */
+            padding: 12px;
+        }
+
+        .area-card, .zone-card {
+            min-height: 80px;
+            padding: 12px;
+            margin: 5px;
+        }
+
+        .status-icon {
+            font-size: 1.5em;
+            margin-bottom: 8px;
+        }
+
+        #areas-container, #zones-container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 5px;
+        }
+
+        .tab-button {
+            padding: 10px 15px;
+            font-size: 1em;
+        }
+    }
+
+    /* Add touch-specific optimizations */
+    @media (hover: none) {
+        .area-card:active, .zone-card:active {
+            transform: scale(0.95);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+    }
+
+    /* Prevent text selection on mobile */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Allow text selection in input fields */
+    input {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    /* Improve scrolling */
+    body {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .events-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        color: var(--text-color);
+    }
+
+    .events-table th,
+    .events-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--primary-color);
+    }
+
+    .events-table th {
+        background-color: var(--card-background);
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .events-table tr:hover {
+        background-color: rgba(29, 185, 84, 0.1);
+    }
+
+    .no-events {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-color);
+    }
+
+    @media (max-width: 768px) {
+        .events-table {
+            font-size: 0.9em;
+        }
+
+        .events-table th,
+        .events-table td {
+            padding: 8px;
+        }
+    }
+
+    .loading-events,
+    .error-events {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-color);
+        font-style: italic;
+    }
+
+    .error-events {
+        color: #E0245E;
+    }
+
+    .events-list {
+        margin-top: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .event-item {
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        margin: 5px 0;
+        background: var(--card-background);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .event-item:hover {
+        transform: translateX(5px);
+    }
+
+    .event-date {
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .event-description {
+        flex-grow: 1;
+        margin-left: 15px;
+    }
+
+    .event-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .event-number {
+        color: var(--secondary-color);
+        font-size: 0.9em;
+    }
+
+    .event-description {
+        color: var(--text-color);
+        font-size: 0.95em;
+    }
+
+    /* Add new styles for alarm events */
+    .event-description.alarm {
+        color: #E0245E;
+        font-weight: bold;
+    }
+
+    .filter-button {
+        background: var(--card-background);
+        border: 2px solid #E0245E;
+        color: #E0245E;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-button.active {
+        background: #E0245E;
+        color: white;
+    }
+
+    .filter-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .filter-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-button.arm {
+        border-color: #1DB954;
+        color: #1DB954;
+    }
+
+    .filter-button.arm.active {
+        background: #1DB954;
+        color: white;
+    }
+
+    .filter-button.disarm {
+        border-color: #0083B0;
+        color: #0083B0;
+    }
+
+    .filter-button.disarm.active {
+        background: #0083B0;
+        color: white;
+    }
+
+    /* Add Tab Styles */
+    .tabs-container {
+      margin: 20px 0;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 5px;
+      border-bottom: 2px solid var(--primary-color);
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      background: var(--card-background);
+      border: none;
+      border-radius: 8px 8px 0 0;
+      color: var(--text-color);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-in;
+      box-shadow: var(--shadow);
+
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .tabs-nav {
+        flex-direction: column;
+        gap: 5px;
+        border-bottom: none;
+      }
+
+      .tab-button {
+        width: 100%;
+        border-radius: 8px;
+      }
+    }
+
+    /* Update zone menu modal styles */
+    .zone-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .zone-menu.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .zone-menu-content {
+      background: var(--card-background);
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .zone-menu-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .zone-menu-header h3 {
+      margin: 0;
+      font-size: 1.5em;
+      color: var(--primary-color);
+    }
+
+    .close-menu {
+      background: none;
+      border: none;
+      font-size: 1.8em;
+      color: var(--text-color);
+      cursor: pointer;
+      padding: 5px;
+      line-height: 1;
+    }
+
+    .zone-status-display {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 15px;
+      border-radius: 8px;
+      background: var(--card-background);
+      border: 1px solid var(--primary-color);
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .status-text {
+      font-size: 1.1em;
+      color: var(--text-color);
+    }
+
+    .zone-controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .menu-button {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-button.bypass {
+      background: var(--gradient-armed);
+    }
+
+    .menu-button.include {
+      background: var(--gradient-disarmed);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .zone-menu-content {
+        width: 95%;
+        padding: 20px;
+      }
+
+      .zone-menu-header h3 {
+        font-size: 1.3em;
+      }
+
+      .zone-controls {
+        flex-direction: column;
+      }
+
+      .menu-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Update container styles for simpler structure */
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+
+    .app-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 1.8em;
+      color: var(--primary-color);
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    /* Simplify tabs structure */
+    .tabs-nav {
+      margin-bottom: 15px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+
+    .tab-content {
+      background: var(--card-background);
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    /* Simplify grid layouts */
+    #areas-container,
+    #zones-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .area-card,
+    .zone-card {
+      margin: 0;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 5px;
+      }
+
+      .section {
+        margin-bottom: 15px;
+      }
+
+      #areas-container,
+      #zones-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+    }
+
+    #theme-button {
+        position: static; /* Rimuove il positioning fixed */
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--card-background);
+        border: 2px solid var(--primary-color);
+        color: var(--text-color);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .event-item:nth-child(odd) {
+        background: rgba(29, 185, 84, 0.05); /* Light green for odd rows */
+    }
+
+    .event-item:nth-child(even) {
+        background: rgba(185, 161, 29, 0.05); /* Default card background for even rows */
+    }
+  </style>
+
+  <script>
+    let statusInterval;
+    let isConnected = false;
+
+    async function sendRequest(endpoint, method, data) {
+      try {
+        if (!endpoint) throw new Error('Endpoint non valido');
+
+        const response = await fetch(endpoint, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'  // Protezione CSRF
+          },
+          credentials: 'same-origin',  // Include cookies per autenticazione
+          body: method === 'GET' ? undefined : JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (endpoint === '/status') {
+          displayStatus(result);
+        } else if (endpoint === '/connect') {
+          if (result.status.includes("successfully")) {
+            startStatusPolling();
+            isConnected = true;
+            document.getElementById('connect-button').innerText = 'Disconnetti';
+            document.getElementById('serverIp').style.display = 'none';
+            document.getElementById('serverPort').style.display = 'none';
+            document.querySelector('label[for="serverIp"]').style.display = 'none';
+            document.querySelector('label[for="serverPort"]').style.display = 'none';
+            document.getElementById('areas-control').style.display = 'block';
+
+            // Load all data immediately
+            requestStatus();
+            //requestZoneNames();
+            //downloadEvents();
+          }
+          showNotification(result.status, 'success');
+        } else if (endpoint === '/disconnect') {
+          stopStatusPolling();
+          isConnected = false;
+          document.getElementById('connect-button').innerText = 'Connetti';
+          document.getElementById('serverIp').style.display = 'block';
+          document.getElementById('serverPort').style.display = 'block';
+          document.querySelector('label[for="serverIp"]').style.display = 'block';
+          document.querySelector('label[for="serverPort"]').style.display = 'block';
+          document.getElementById('areas-control').style.display = 'none';
+          showNotification(result.status, 'info');
+        } else {
+          showNotification(result.status, 'info');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        stopStatusPolling();
+        showNotification(`Errore: ${error.message}`, 'error');
+      }
+    }
+
+    function startStatusPolling() {
+      // Clear any existing interval
+      if (statusInterval) clearInterval(statusInterval);
+      // Request status every 2 seconds
+      statusInterval = setInterval(() => requestStatus(), 2000);
+    }
+
+    function stopStatusPolling() {
+      if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+      }
+    }
+
+    function displayStatus(result) {
+      // Display areas
+      const areasContainer = document.getElementById('areas-container');
+      areasContainer.innerHTML = ''; // Clear existing areas
+
+      for (const [partition, status] of Object.entries(result.areas)) {
+        const areaNumber = parseInt(partition.split('_')[1]);
+        const areaElement = document.createElement('div');
+        areaElement.className = `area-card ${status.toLowerCase()}`;
+        areaElement.onclick = () => toggleArea(areaNumber, status);
+
+        // Translate status and set icon
+        let statusText, icon;
+        switch (status.toLowerCase()) {
+          case 'armed':
+            statusText = 'Stato: Inserito';
+            icon = 'fa-lock';
+            break;
+          case 'armed in alarm':
+            statusText = 'Stato: In Allarme';
+            icon = 'fa-bell';
+            break;
+          case 'disarmed':
+            statusText = 'Stato: Disinserito';
+            icon = 'fa-lock-open';
+            break;
+          default:
+            statusText = status;
+            icon = 'fa-lock-open';
+        }
+
+        areaElement.innerHTML = `
+          <i class="fas ${icon} status-icon"></i>
+          <div class="area-number">Area ${areaNumber}</div>
+          <div class="area-status">${statusText}</div>
+        `;
+        areasContainer.appendChild(areaElement);
+      }
+
+
+      // Display zones with names in numerical order
+      const zonesContainer = document.getElementById('zones-container');
+      zonesContainer.innerHTML = '';
+
+      const zoneEntries = Object.entries(result.zones || {})
+        .map(([zone, data]) => ({
+          number: parseInt(zone.split('_')[1]),
+          zone: zone,
+          status: data.status,
+          bypassed: data.bypassed,
+          name: result.zone_names?.[zone] || `Zona ${parseInt(zone.split('_')[1])}`
+        }))
+        .sort((a, b) => a.number - b.number);
+
+      for (const entry of zoneEntries) {
+        const zoneElement = document.createElement('div');
+        zoneElement.className = `zone-card ${entry.status}`;
+        if (entry.bypassed) {
+          zoneElement.classList.add('bypassed');
+        }
+        zoneElement.onclick = () => showZoneMenu(entry.number, entry.status, entry.name, entry.bypassed);
+
+        const icon = entry.status.toLowerCase() === 'alarm' ? 'fa-bell' : 'fa-check-circle';
+        const bypassIcon = entry.bypassed ? '<i class="fas fa-ban bypass-icon"></i>' : '';
+        const statusText = entry.bypassed ? 'Esclusa' : (entry.status.toLowerCase() === 'alarm' ? 'Allarme' : 'Normale');
+
+        zoneElement.innerHTML = `
+          <i class="fas ${icon} status-icon"></i>
+          ${bypassIcon}
+          <div class="zone-number">${entry.name}</div>
+          <div class="zone-status">${statusText}</div>
+        `;
+        zonesContainer.appendChild(zoneElement);
+      }
+    }
+
+    function toggleArea(areaNumber, currentStatus) {
+      if (currentStatus.toLowerCase() === 'armed') {
+        sendRequest('/disarm', 'POST', { area: areaNumber });
+      } else {
+        sendRequest('/arm', 'POST', { area: areaNumber });
+      }
+    }
+
+    function armSystem() {
+      const area = document.getElementById('area').value;
+      sendRequest('/arm', 'POST', { area: parseInt(area) });
+    }
+
+    function disarmSystem() {
+      const area = document.getElementById('area').value;
+      sendRequest('/disarm', 'POST', { area: parseInt(area) });
+    }
+
+    function requestStatus() {
+      sendRequest('/status', 'GET');
+    }
+
+
+    function connect() {
+      if (isConnected) {
+        sendRequest('/disconnect', 'POST');
+      } else {
+        const serverIp = document.getElementById('serverIp').value;
+        const serverPort = document.getElementById('serverPort').value;
+        const objectId = 1;
+        const timeout = 5;
+        sendRequest('/connect', 'POST', {
+          server_ip: serverIp,
+          server_port: parseInt(serverPort),
+          object_id: parseInt(objectId),
+          timeout: parseInt(timeout)
+        });
+      }
+    }
+
+    async function requestZoneNames() {
+      try {
+        showNotification('Caricamento nomi zone...', 'info');
+        for (let i = 1; i <= 16; i++) {  // Request names for first 16 zones
+          const message = await fetch('/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              command: '0x23',  // Zone name request command
+              data: i.toString()
+            })
+          });
+          await new Promise(resolve => setTimeout(resolve, 300)); // Wait 300ms between requests
+        }
+
+        // Request status to update zone names
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await requestStatus();
+        showNotification('Nomi zone aggiornati', 'success');
+      } catch (error) {
+        console.error('Error requesting zone names:', error);
+        showNotification('Errore nel caricamento nomi zone', 'error');
+      }
+    }
+
+    function switchTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+
+      // Deactivate all tab buttons
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+
+      // Show selected tab content and activate button
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+      if (tabName === 'events') {
+        downloadEvents();
+      } else if (tabName === 'zones') {
+        requestZoneNames(); // Add this line to request zone names when switching to zones tab
+      }
+    }
+
+    function armAllAreas() {
+      for (let area = 1; area <= 4; area++) {
+        sendRequest('/arm', 'POST', { area: area });
+      }
+    }
+
+    function disarmAllAreas() {
+      for (let area = 1; area <= 4; area++) {
+        sendRequest('/disarm', 'POST', { area: area });
+      }
+    }
+
+    function toggleTheme() {
+      const root = document.documentElement;
+      const themeButton = document.getElementById('theme-button');
+      const isDark = root.classList.toggle('light-theme');
+
+      // Aggiorna l'icona e il titolo del pulsante
+      themeButton.innerHTML = isDark ?
+        '<i class="fas fa-moon"></i>' :
+        '<i class="fas fa-sun"></i>';
+      themeButton.title = isDark ? 'Modalità scura' : 'Modalità chiara';
+    }
+
+    function showNotification(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      notification.style.display = 'block';
+
+      // Nascondi la notifica dopo 3 secondi
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 3000);
+    }
+
+    async function downloadEvents() {
+      try {
+        showNotification('Caricamento eventi in corso...', 'info');
+        const eventsContainer = document.getElementById('events-container');
+        eventsContainer.innerHTML = '<div class="loading-events">Caricamento eventi...</div>';
+
+        const response = await fetch('/events');
+        const result = await response.json();
+
+        if (result.events && Object.keys(result.events).length > 0) {
+          displayEvents(result.events);
+          showNotification('Eventi caricati con successo', 'success');
+        } else {
+          eventsContainer.innerHTML = '<div class="no-events">Nessun evento disponibile</div>';
+          showNotification('Nessun evento trovato', 'info');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showNotification('Errore nel recupero eventi', 'error');
+        document.getElementById('events-container').innerHTML =
+          '<div class="error-events">Errore nel caricamento degli eventi</div>';
+      }
+    }
+
+    function displayEvents(events) {
+      const eventsContainer = document.getElementById('events-container');
+      eventsContainer.innerHTML = `
+        <div class="filter-controls">
+          <button class="filter-button" id="alarmFilter" onclick="toggleFilter('alarm')">
+            <i class="fas fa-bell"></i>
+            Filtra Allarmi
+          </button>
+          <button class="filter-button arm" id="armFilter" onclick="toggleFilter('arm')">
+            <i class="fas fa-lock"></i>
+            Filtra Inserimenti
+          </button>
+          <button class="filter-button disarm" id="disarmFilter" onclick="toggleFilter('disarm')">
+            <i class="fas fa-lock-open"></i>
+            Filtra Disinserimenti
+          </button>
+        </div>
+      `;
+
+      const eventsList = document.createElement('div');
+      eventsList.className = 'events-list';
+      eventsContainer.appendChild(eventsList);
+
+      if (!events || Object.keys(events).length === 0) {
+        eventsList.innerHTML = '<div class="no-events">Nessun evento disponibile</div>';
+        return;
+      }
+
+      window.allEvents = Object.entries(events)
+        .map(([id, event]) => ({
+          id,
+          datetime: new Date(event.datetime),
+          description: event.description,
+          isAlarm: event.description.includes('Allarme'),
+          isArm: event.description.includes('Inserimento'),
+          isDisarm: event.description.includes('Disinserimento')
+        }))
+        .sort((a, b) => b.datetime - a.datetime);
+
+      window.activeFilter = null;
+      filterEvents();
+    }
+
+    function toggleFilter(filterType) {
+      const filterButtons = {
+        alarm: document.getElementById('alarmFilter'),
+        arm: document.getElementById('armFilter'),
+        disarm: document.getElementById('disarmFilter')
+      };
+
+      // Rimuovi active da tutti i pulsanti
+      Object.values(filterButtons).forEach(btn => btn.classList.remove('active'));
+
+      // Se il filtro cliccato era già attivo, disattivalo
+      if (window.activeFilter === filterType) {
+        window.activeFilter = null;
+      } else {
+        // Altrimenti attiva il nuovo filtro
+        window.activeFilter = filterType;
+        filterButtons[filterType].classList.add('active');
+      }
+
+      filterEvents();
+    }
+
+    function filterEvents() {
+      const eventsList = document.querySelector('.events-list');
+      eventsList.innerHTML = '';
+
+      let filteredEvents = window.allEvents;
+
+      switch (window.activeFilter) {
+        case 'alarm':
+          filteredEvents = window.allEvents.filter(event => event.isAlarm);
+          break;
+        case 'arm':
+          filteredEvents = window.allEvents.filter(event => event.isArm);
+          break;
+        case 'disarm':
+          filteredEvents = window.allEvents.filter(event => event.isDisarm);
+          break;
+      }
+
+      filteredEvents.forEach(event => {
+        const eventItem = document.createElement('div');
+        eventItem.className = 'event-item';
+
+        const dateFormatted = event.datetime.toLocaleString('it-IT', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+
+        const eventClass = event.isAlarm ? 'alarm' :
+          event.isArm ? 'arm' :
+            event.isDisarm ? 'disarm' : '';
+
+        eventItem.innerHTML = `
+          <div class="event-header">
+            <span class="event-date">${dateFormatted}</span>
+          </div>
+          <div class="event-description ${eventClass}">${event.description}</div>
+        `;
+
+        eventsList.appendChild(eventItem);
+      });
+    }
+
+    function exportEvents() {
+      if (!window.allEvents || window.allEvents.length === 0) {
+        showNotification('Nessun evento da esportare', 'warning');
+        return;
+      }
+
+      // Create CSV content
+      const csvContent = [
+        ['Data', 'Ora', 'Descrizione'], // CSV header
+        ...window.allEvents.map(event => [
+          event.datetime.toLocaleDateString('it-IT'),
+          event.datetime.toLocaleTimeString('it-IT'),
+          event.description
+        ])
+      ].map(row => row.join(',')).join('\n');
+
+      // Create and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `eventi_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showNotification('Download completato', 'success');
+    }
+
+    let currentZoneNumber = null;
+
+    function showZoneMenu(zoneNumber, status, name, bypassed) {
+      currentZoneNumber = zoneNumber;
+      const menu = document.getElementById('zone-menu');
+      const title = document.getElementById('zone-menu-title');
+      const statusDisplay = document.getElementById('zone-status-display');
+      const bypassButton = document.getElementById('bypass-button');
+      const includeButton = document.getElementById('include-button');
+
+      title.textContent = name;
+
+      // Update status display
+      const statusDot = statusDisplay.querySelector('.status-dot');
+      const statusText = statusDisplay.querySelector('.status-text');
+      statusDot.className = `status-dot ${status.toLowerCase()}${bypassed ? ' bypassed' : ''}`;
+      statusText.textContent = `Stato: ${bypassed ? 'Esclusa' : status}`;
+
+      // Update bypass buttons visibility
+      bypassButton.style.display = bypassed ? 'none' : 'block';
+      includeButton.style.display = bypassed ? 'block' : 'none';
+
+      menu.classList.add('active');
+    }
+
+    function closeZoneMenu() {
+      document.getElementById('zone-menu').classList.remove('active');
+      currentZoneNumber = null;
+    }
+
+    function toggleBypass(action) {
+      if (currentZoneNumber === null) return;
+
+      const command = action === 'exclude' ? '0x42' : '0x43'; // Use appropriate commands for your system
+      const actionText = action === 'exclude' ? 'esclusione' : 'inclusione';
+
+      sendRequest('/send', 'POST', {
+        command: command,
+        data: currentZoneNumber.toString()
+      }).then(() => {
+        showNotification(`Comando di ${actionText} inviato`, 'success');
+        closeZoneMenu();
+        requestStatus();
+      }).catch(error => {
+        showNotification(`Errore nell'invio del comando di ${actionText}`, 'error');
+      });
+    }
+  </script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+        <div class="header-content">
+            <h1 class="app-title">SmartNX Control</h1>
+            <button id="theme-button" onclick="toggleTheme()" title="Modalità scura">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+    <div id="notification" class="notification"></div>
+
+    <!-- Connection Form -->
+    <div id="connect-container">
+      <label for="serverIp">IP Server:</label>
+      <input type="text" id="serverIp" value="192.168.0.50">
+      <label for="serverPort">Porta Server:</label>
+      <input type="number" id="serverPort" value="3434">
+      <button id="connect-button" onclick="connect()">Connetti</button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="areas-control" style="display: none;">
+      <nav class="tabs-nav">
+        <button class="tab-button active" onclick="switchTab('areas')">
+          <i class="fas fa-shield-alt"></i> Aree
+        </button>
+        <button class="tab-button" onclick="switchTab('zones')">
+          <i class="fas fa-map-marker-alt"></i> Zone
+        </button>
+        <button class="tab-button" onclick="switchTab('events')">
+          <i class="fas fa-history"></i> Eventi
+        </button>
+      </nav>
+
+      <!-- Tab Contents -->
+      <div id="areas-tab" class="tab-content active">
+        <div class="global-controls">
+          <button class="global-button arm-all" onclick="armAllAreas()">
+            <i class="fas fa-lock"></i> Inserisci Tutte
+          </button>
+          <button class="global-button disarm-all" onclick="disarmAllAreas()">
+            <i class="fas fa-lock-open"></i> Disinserisci Tutte
+          </button>
+        </div>
+        <div id="areas-container"></div>
+      </div>
+
+      <div id="zones-tab" class="tab-content">
+        <div class="global-controls">
+          <button class="download-button" onclick="requestZoneNames()">
+            <i class="fas fa-sync-alt"></i> Aggiorna Zone
+          </button>
+        </div>
+        <div id="zones-container"></div>
+      </div>
+
+      <div id="events-tab" class="tab-content">
+        <div class="events-header">
+          <button class="download-button" onclick="downloadEvents()">
+            <i class="fas fa-sync-alt"></i> Aggiorna
+          </button>
+          <button class="download-button" onclick="exportEvents()">
+            <i class="fas fa-download"></i> CSV
+          </button>
+        </div>
+        <div id="events-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone Menu Modal -->
+  <div id="zone-menu" class="zone-menu" onclick="if(event.target === this) closeZoneMenu()">
+    <div class="zone-menu-content">
+      <div class="zone-menu-header">
+        <h3 id="zone-menu-title">Zona X</h3>
+        <button class="close-menu" onclick="closeZoneMenu()">×</button>
+      </div>
+      <div class="zone-menu-body">
+        <div id="zone-status-display" class="zone-status-display">
+          <span class="status-dot"></span>
+          <span class="status-text">Stato: Normal</span>
+        </div>
+        <div class="zone-controls">
+          <button id="bypass-button" class="menu-button bypass" onclick="toggleBypass('exclude')">
+            <i class="fas fa-ban"></i>
+            <span>Escludi Zona</span>
+          </button>
+          <button id="include-button" class="menu-button include" onclick="toggleBypass('include')">
+            <i class="fas fa-undo"></i>
+            <span>Includi Zona</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
