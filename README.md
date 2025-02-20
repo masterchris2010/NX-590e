@@ -94,10 +94,4 @@ Le contribuzioni sono benvenute! Se desideri contribuire a questo progetto, segu
 3.  Implementa le modifiche.
 4.  Invia una pull request.
 
-## License
 
-Questo progetto è rilasciato sotto licenza [MIT License](LICENSE).
-
-## Contact
-
-Per domande o suggerimenti, contatta [your_email@example.com](mailto:your_email@example.com).
